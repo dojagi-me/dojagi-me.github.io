@@ -164,7 +164,7 @@ button{font-family:var(--px)}
     <div class="shelf" id="shelf"></div>
     <p class="lede">작업실에서 생길 법한 질문 8개에 답하면, 당신을 닮은 도자기를 가마에서 구워 드려요. 청자부터 옹기, 라쿠까지 8가지 유형이 있어요.</p>
     <p class="lede">답은 한 번 누르면 선택, 한 번 더 누르면 확정이에요.</p>
-    <div style="margin-top:20px"><button class="btn blink" id="go">흙 반죽 시작하기</button></div>
+    <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px"><button class="btn blink" id="go">흙 반죽 시작하기</button><button class="btn ghost" id="visit">박물관 구경하기</button></div>
   </section>
 
   <section id="name" class="card" hidden>
@@ -193,6 +193,10 @@ button{font-family:var(--px)}
     <canvas id="flame" width="64" height="32"></canvas>
     <div class="temp" id="temp">0℃</div>
     <p id="firemsg" style="color:var(--muted)">초벌 중이에요</p>
+  </section>
+
+  <section id="hall" hidden style="display:flex;flex-direction:column;gap:14px">
+    <button class="btn ghost" id="hallBack">처음 화면으로</button>
   </section>
 
   <section id="result" hidden>
@@ -230,7 +234,7 @@ button{font-family:var(--px)}
       <div class="tag">전체 8가지 유형</div>
       <div class="gallery" id="gallery"></div>
     </div>
-    <div class="museum">
+    <div class="museum" id="museumBox">
       <h2>도자기 박물관</h2>
       <p id="mcount">전시실 불을 켜는 중이에요</p>
       <div class="halls" id="halls"></div>
@@ -568,7 +572,7 @@ function startScene(){sceneT0=performance.now();if(!sceneRaf)sceneRaf=requestAni
 
 /* ---------- app ---------- */
 const $=id=>document.getElementById(id);
-const show=id=>["start","name","quiz","firing","result"].forEach(s=>$(s).hidden=s!==id);
+const show=id=>{["start","name","quiz","firing","result","hall"].forEach(s=>$(s).hidden=s!==id);if(id==="hall")$("hall").appendChild($("museumBox"));else if(id==="result")$("result").appendChild($("museumBox"))};
 let qi=0,score={},hist=[],sel=null,locked=false;
 $("title").innerHTML=[...$("title").textContent].map((c,i)=>`<span style="--i:${i}">${c===" "?"&nbsp;":c}</span>`).join("");
 ORDER.forEach((k,i)=>{const cv=potCanvas(k);cv.style.setProperty("--i",i);cv.title=TYPES[k].name;$("shelf").appendChild(cv)});
@@ -666,6 +670,8 @@ ORDER.forEach(k=>{
 });
 $("go").onclick=()=>{Snd.unlock();Snd.sfx("ok");show("name");setTimeout(()=>$("nick").focus(),50)};
 $("again").onclick=()=>{Snd.sfx("tap");show("start");window.scrollTo({top:0})};
+$("visit").onclick=()=>{Snd.unlock();Snd.sfx("ok");show("hall");window.scrollTo({top:0})};
+$("hallBack").onclick=()=>{Snd.sfx("tap");show("start");window.scrollTo({top:0})};
 $("copy").onclick=()=>{
   const T=TYPES[current];
   const txt=`${playerName?playerName+"님을":"나를"} 닮은 도자기는 「${T.name}」 ${T.sub} (${T.temp}℃)\n너는 어떤 도자기야? ${location.href}`;
@@ -744,7 +750,7 @@ function renderMuseum(){
       s.style.left=L.x+"%";s.style.top=L.y+"%";wrap.appendChild(s)});
     room.append(lab,wrap);halls.appendChild(room);
   }
-  $("mnote").textContent=dbState==="off"?"박물관에 연결하지 못해서, 내 도자기는 나에게만 보여요.":dbState==="ro"?"전시하지 못했어요. 인터넷 연결을 확인하고 다시 해 보세요.":"";
+  $("mnote").textContent=dbState==="off"?(localMine?"박물관에 연결하지 못해서, 내 도자기는 나에게만 보여요.":"박물관에 연결하지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요."):dbState==="ro"?"전시하지 못했어요. 인터넷 연결을 확인하고 다시 해 보세요.":"";
 }
 /* ===== Firebase 설정: 아래 null 자리에 firebaseConfig 값을 넣으면 박물관이 켜져요 ===== */
 const FIREBASE_CONFIG = {
